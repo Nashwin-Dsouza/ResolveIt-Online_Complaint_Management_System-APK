@@ -36,7 +36,7 @@ export default function OtpInput({ onBack, formData, type }) {
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const res = await fetch("http://localhost:5000/api/otp/verify", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/otp/verify`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export default function OtpInput({ onBack, formData, type }) {
         // After OTP is verified, complete login or signup
         if (type === 'login') {
           // Complete login
-          const loginRes = await fetch("http://localhost:5000/api/auth/login", {
+          const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -71,7 +71,7 @@ export default function OtpInput({ onBack, formData, type }) {
           }
         } else {
           // Complete signup
-          const signupRes = await fetch("http://localhost:5000/api/auth/signup", {
+          const signupRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -104,7 +104,7 @@ export default function OtpInput({ onBack, formData, type }) {
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const res = await fetch("http://localhost:5000/api/otp/resend", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/otp/resend`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
