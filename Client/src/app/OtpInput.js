@@ -130,14 +130,14 @@ export default function OtpInput({ onBack, formData, type }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-2 sm:p-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Enter OTP</h2>
-        <p className="text-gray-600 text-sm">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Enter OTP</h2>
+        <p className="text-gray-600 text-xs sm:text-sm">
           We have sent a 4-digit code to your email
         </p>
         {formData && formData.email && (
-          <p className="text-blue-600 text-sm font-medium mt-1">{formData.email}</p>
+          <p className="text-blue-600 text-xs sm:text-sm font-medium mt-1">{formData.email}</p>
         )}
       </div>
       {errorMsg && (
@@ -146,8 +146,8 @@ export default function OtpInput({ onBack, formData, type }) {
       {successMsg && (
         <div className="text-green-600 font-semibold text-center">{successMsg}</div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex justify-center space-x-3">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <div className="flex justify-center space-x-2 sm:space-x-3">
           {otp.map((digit, index) => (
             <input
               key={index}
@@ -155,7 +155,7 @@ export default function OtpInput({ onBack, formData, type }) {
               name={`otp-${index}`}
               value={digit}
               onChange={(e) => handleChange(index, e.target.value)}
-              className="w-12 h-12 text-center border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-lg font-semibold"
+              className="w-10 h-10 sm:w-12 sm:h-12 text-center border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-lg font-semibold"
               maxLength={1}
               required
               disabled={isLoading}

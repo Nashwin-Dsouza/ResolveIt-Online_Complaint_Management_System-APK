@@ -78,7 +78,7 @@ export default function SignupForm({ onRequestOtp }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 p-2 sm:p-4">
       {errorMsg && (
         <div className="flex items-center text-red-600 font-semibold">
           <span className="mr-2">❌</span> {errorMsg}
@@ -89,47 +89,47 @@ export default function SignupForm({ onRequestOtp }) {
           <span className="mr-2">✅</span> {successMsg}
         </div>
       )}
-      <label htmlFor="firstName" className="block mb-1">First Name</label>
+      <label htmlFor="firstName" className="block mb-1 text-sm sm:text-base">First Name</label>
       <input
         id="firstName"
         name="firstName"
         value={formData.firstName}
         onChange={handleChange}
         placeholder="First Name"
-        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-base sm:text-sm sm:px-2"
+        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base"
         required
       />
-      <label htmlFor="lastName" className="block mb-1">Last Name</label>
+      <label htmlFor="lastName" className="block mb-1 text-sm sm:text-base">Last Name</label>
       <input
         id="lastName"
         name="lastName"
         value={formData.lastName}
         onChange={handleChange}
         placeholder="Last Name"
-        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-base sm:text-sm sm:px-2"
+        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base"
         required
       />
-      <label htmlFor="email" className="block mb-1">Email</label>
+      <label htmlFor="email" className="block mb-1 text-sm sm:text-base">Email</label>
       <input
         id="email"
         name="email"
         value={formData.email}
         onChange={handleChange}
         placeholder="Email"
-        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-base sm:text-sm sm:px-2"
+        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base"
         required
       />
-      <label htmlFor="dob" className="block mb-1">Date of Birth</label>
+      <label htmlFor="dob" className="block mb-1 text-sm sm:text-base">Date of Birth</label>
       <input
         id="dob"
         type="date"
         name="dob"
         value={formData.dob}
         onChange={handleChange}
-        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-base sm:text-sm sm:px-2"
+        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base"
         required
       />
-      <label htmlFor="password" className="block mb-1">Password</label>
+      <label htmlFor="password" className="block mb-1 text-sm sm:text-base">Password</label>
       {passwordTouched && (
         <div className="mb-1 text-xs text-gray-600">
           Password must be at least 6 characters, contain letters and numbers for medium (😐), and at least 8 characters with a special character for strong (😃).
@@ -144,7 +144,7 @@ export default function SignupForm({ onRequestOtp }) {
           onChange={handleChange}
           onFocus={handlePasswordFocus}
           placeholder="Password"
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition pr-10 text-base sm:text-sm sm:px-2"
+          className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition pr-10 text-sm sm:text-base"
           required
         />
         {passwordTouched && (
@@ -179,7 +179,7 @@ export default function SignupForm({ onRequestOtp }) {
       )}
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded-lg shadow hover:drop-shadow-[0_0_8px_#2563EB] transition flex items-center justify-center"
+        className="w-full bg-blue-600 text-white py-2 rounded-lg shadow hover:drop-shadow-[0_0_8px_#2563EB] transition flex items-center justify-center text-sm sm:text-base"
         disabled={isLoading || passwordStrength === 'weak'}
       >
         {isLoading ? (

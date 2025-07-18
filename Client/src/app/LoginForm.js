@@ -38,7 +38,7 @@ export default function LoginForm({ onRequestOtp }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 p-2 sm:p-4">
       {errorMsg && (
         <div className="flex items-center text-red-600 font-semibold">
           <span className="mr-2">❌</span> {errorMsg}
@@ -49,7 +49,7 @@ export default function LoginForm({ onRequestOtp }) {
           <span className="mr-2">✅</span> {successMsg}
         </div>
       )}
-      <label htmlFor="email" className="block mb-1">Email</label>
+      <label htmlFor="email" className="block mb-1 text-sm sm:text-base">Email</label>
       <input
         id="email"
         type="email"
@@ -57,10 +57,10 @@ export default function LoginForm({ onRequestOtp }) {
         value={formData.email}
         onChange={handleChange}
         placeholder="Email"
-        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition"
+        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base"
         required
       />
-      <label htmlFor="password" className="block mb-1">Password</label>
+      <label htmlFor="password" className="block mb-1 text-sm sm:text-base">Password</label>
       <div className="relative flex items-center">
         <input
           id="password"
@@ -69,7 +69,7 @@ export default function LoginForm({ onRequestOtp }) {
           value={formData.password}
           onChange={handleChange}
           placeholder="Password"
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition pr-10"
+          className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition pr-10 text-sm sm:text-base"
           required
         />
         <button
@@ -88,7 +88,7 @@ export default function LoginForm({ onRequestOtp }) {
       </div>
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded-lg shadow hover:drop-shadow-[0_0_8px_#2563EB] transition flex items-center justify-center"
+        className="w-full bg-blue-600 text-white py-2 rounded-lg shadow hover:drop-shadow-[0_0_8px_#2563EB] transition flex items-center justify-center text-sm sm:text-base"
         disabled={isLoading}
       >
         {isLoading ? (
