@@ -6,9 +6,20 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next build",
+    "cap:init": "npx cap init",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npm run build && npx cap sync",
+    "cap:copy": "npx cap copy",
+    "cap:open:android": "npx cap open android",
+    "android:build": "npm run build && npx cap sync android && npx cap open android",
+    "android:dev": "npm run build && npx cap copy android && npx cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^5.5.0",
+    "@capacitor/cli": "^5.5.0",
+    "@capacitor/core": "^5.5.0",
     "framer-motion": "^12.15.0",
     "next": "15.3.3",
     "react": "^19.0.0",

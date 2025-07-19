@@ -4,19 +4,25 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+// CORS configuration
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://localhost', 'capacitor://localhost'],
+  credentials: true
+}));
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
-app.use('/api/auth', authRoutes);
+const otpRoutes = require('./routes/otpRoutes');
+const complaintRoutes = require('./routes/complaintRoutes');
 
-const cors = require('cors');
-const cors = require('cors');
-app.use(cors({
-  origin: 'http://localhost:3000', // your frontend origin
-  credentials: true
-}));
+app.use('/api/auth', authRoutes);
+app.use('/api/otp', otpRoutes);
+app.use('/api/complaints', complaintRoutes);
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))

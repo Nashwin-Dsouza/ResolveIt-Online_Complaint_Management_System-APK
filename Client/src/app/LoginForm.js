@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 
+import ValidationUtils from '../utils/validation';
+import SecureStorage from '../utils/secureStorage';
+
 export default function LoginForm({ onRequestOtp }) {
   const [formData, setFormData] = useState({
     email: "",
@@ -11,6 +14,7 @@ export default function LoginForm({ onRequestOtp }) {
   const [successMsg, setSuccessMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,12 +27,23 @@ export default function LoginForm({ onRequestOtp }) {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
-    if (!formData.email || !formData.password) {
-      setErrorMsg("Please enter your email and password");
+    const emailValidation = ValidationUtils.validateEmail(formData.email);
+    const passwordValidation = ValidationUtils.validatePassword(formData.password);
+
+    if (!emailValidation.isValid) {
+      setErrorMsg(emailValidation.errors.join(', '));
+      return;
+    }
+
+    if (!passwordValidation.isValid) {
+      setErrorMsg(passwordValidation.errors.join(', '));
       return;
     }
     setIsLoading(true);
     try {
+      if (remember) {
+        await SecureStorage.setRememberLogin(true);
+      }
       await onRequestOtp({ email: formData.email, password: formData.password }, 'login');
       setFormData({ email: "", password: "" });
     } catch {
@@ -86,6 +101,21 @@ export default function LoginForm({ onRequestOtp }) {
           )}
         </button>
       </div>
+      
+      {/* Remember me checkbox */}
+      <div className="flex items-center">
+        <input
+          id="remember"
+          type="checkbox"
+          checked={remember}
+          onChange={(e) => setRemember(e.target.checked)}
+          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+        />
+        <label htmlFor="remember" className="ml-2 text-sm text-gray-700">
+          Remember me
+        </label>
+      </div>
+      
       <button
         type="submit"
         className="w-full bg-blue-600 text-white py-2 rounded-lg shadow hover:drop-shadow-[0_0_8px_#2563EB] transition flex items-center justify-center text-sm sm:text-base"

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import SignupForm from "./SignupForm.js"; // Make sure path is correct
 import LoginForm from "./LoginForm.js";
 import OtpInput from "./OtpInput.js";
+import { config } from "../../config";
 
 // Add types for form data
 interface LoginFormData {
@@ -41,7 +42,7 @@ export default function SlidingAuth() {
     setOtpFormData(formData);
     setOtpType(type);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/otp/send`, {
+      const res = await fetch(`${config.getActiveAPIUrl()}/api/otp/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

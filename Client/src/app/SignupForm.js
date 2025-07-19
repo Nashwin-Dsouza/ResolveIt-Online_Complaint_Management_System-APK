@@ -1,14 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import ValidationUtils from '../utils/validation';
+import SecureStorage from '../utils/secureStorage';
 
-const getPasswordStrength = (password) => {
-  if (!password) return 'weak';
-  if (/^[a-zA-Z]+$/.test(password)) return 'weak';
-  if (/^(?=.*[a-zA-Z])(?=.*[0-9])[A-Za-z0-9]{6,}$/.test(password)) return 'medium';
-  if (/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9])[A-Za-z0-9\W_]{8,}$/.test(password)) return 'strong';
-  return 'weak';
-};
 const getEmoji = (strength) => {
   if (strength === 'weak') return '😡';
   if (strength === 'medium') return '😐';
@@ -30,8 +25,9 @@ export default function SignupForm({ onRequestOtp }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordError, setShowPasswordError] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
+  const [remember, setRemember] = useState(false);
 
-  const passwordStrength = getPasswordStrength(formData.password);
+  const passwordStrength = ValidationUtils.getPasswordStrength(formData.password);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,18 +45,42 @@ export default function SignupForm({ onRequestOtp }) {
     e.preventDefault();
     setSuccessMsg("");
     setShowPasswordError(false);
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.dob || !formData.password) {
-      setErrorMsg("Please fill all fields");
+const firstNameValidation = ValidationUtils.validateName(formData.firstName, 'First Name');
+    const lastNameValidation = ValidationUtils.validateName(formData.lastName, 'Last Name');
+    const emailValidation = ValidationUtils.validateEmail(formData.email);
+    const dobValidation = ValidationUtils.validateDateOfBirth(formData.dob);
+    const passwordValidation = ValidationUtils.validatePassword(formData.password);
+
+    if (!firstNameValidation.isValid) {
+      setErrorMsg(firstNameValidation.errors.join(', '));
       return;
     }
-    if (passwordStrength === 'weak') {
-      setShowPasswordError(true);
-      setErrorMsg("");
+
+    if (!lastNameValidation.isValid) {
+      setErrorMsg(lastNameValidation.errors.join(', '));
+      return;
+    }
+
+    if (!emailValidation.isValid) {
+      setErrorMsg(emailValidation.errors.join(', '));
+      return;
+    }
+
+    if (!dobValidation.isValid) {
+      setErrorMsg(dobValidation.errors.join(', '));
+      return;
+    }
+
+    if (!passwordValidation.isValid) {
+      setErrorMsg(passwordValidation.errors.join(', '));
       return;
     }
     setErrorMsg("");
     setIsLoading(true);
     try {
+if (remember) {
+        await SecureStorage.setRememberLogin(true);
+      }
       await onRequestOtp(formData, 'signup');
       setSuccessMsg("Signup request sent! Please check your email for OTP.");
       setFormData({

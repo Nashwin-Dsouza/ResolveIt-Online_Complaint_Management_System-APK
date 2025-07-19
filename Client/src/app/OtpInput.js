@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { config } from "../../config";
 
 export default function OtpInput({ onBack, formData, type }) {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function OtpInput({ onBack, formData, type }) {
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/otp/verify`, {
+      const res = await fetch(`${config.getActiveAPIUrl()}/api/otp/verify`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,7 +54,7 @@ export default function OtpInput({ onBack, formData, type }) {
         // After OTP is verified, complete login or signup
         if (type === 'login') {
           // Complete login
-          const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+          const loginRes = await fetch(`${config.getActiveAPIUrl()}/api/auth/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -71,7 +72,7 @@ export default function OtpInput({ onBack, formData, type }) {
           }
         } else {
           // Complete signup
-          const signupRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
+          const signupRes = await fetch(`${config.getActiveAPIUrl()}/api/auth/signup`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -104,7 +105,7 @@ export default function OtpInput({ onBack, formData, type }) {
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/otp/resend`, {
+      const res = await fetch(`${config.getActiveAPIUrl()}/api/otp/resend`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
