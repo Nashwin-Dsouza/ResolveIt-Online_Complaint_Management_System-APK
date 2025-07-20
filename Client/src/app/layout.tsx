@@ -1,6 +1,8 @@
 // src/app/layout.tsx
 import './globals.css'; // Import Tailwind or global styles
 import type { Metadata } from 'next';
+import NetworkPermissionHandler from '../components/NetworkPermissionHandler';
+import DeviceInitializer from '../components/DeviceInitializer';
 
 export const metadata: Metadata = {
   title: 'ResolveIt',
@@ -18,7 +20,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head />
-      <body>{children}</body>
+      <body>
+        <NetworkPermissionHandler showPermissionDialog={true}>
+          <DeviceInitializer />
+          {children}
+        </NetworkPermissionHandler>
+      </body>
     </html>
   );
 }

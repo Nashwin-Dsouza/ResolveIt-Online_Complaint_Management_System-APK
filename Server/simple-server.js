@@ -4,7 +4,15 @@ const app = express();
 
 // CORS configuration for mobile app
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'capacitor://localhost', 'http://localhost'],
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:3001', 
+    'capacitor://localhost', 
+    'http://localhost',
+    'https://resolveit-online-complaint-management-xncb.onrender.com',
+    'https://resolveit-online-complaint-management.onrender.com',
+    'capacitor://resolveit-online-complaint-management-xncb.onrender.com'
+  ],
   credentials: true
 }));
 

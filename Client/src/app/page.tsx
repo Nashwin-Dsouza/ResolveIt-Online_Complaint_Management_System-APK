@@ -33,6 +33,9 @@ export default function SlidingAuth() {
 
   useEffect(() => {
     setMounted(true);
+    // Print backend server URL on mount
+    const backendUrl = config.getActiveAPIUrl ? config.getActiveAPIUrl() : config.API_URL;
+    console.log('[App] Backend server URL in use:', backendUrl);
   }, []);
 
   if (!mounted) return null;
@@ -42,23 +45,50 @@ export default function SlidingAuth() {
     setOtpFormData(formData);
     setOtpType(type);
     try {
-      const res = await fetch(`${config.getActiveAPIUrl()}/api/otp/send`, {
+      const url = `${config.getActiveAPIUrl()}/api/otp/send`;
+      console.log("[OTP] Sending OTP to:", url, "with data:", { ...formData, type });
+      const res = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ ...formData, type }),
       });
-      const data = await res.json();
+      let data: unknown = {};
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        console.error("[OTP] Failed to parse JSON response:", jsonErr);
+      }
       if (res.ok) {
         setShowOtp(true);
       } else {
-        console.error("Failed to send OTP:", data.error);
-        alert("Failed to send OTP. Please try again.");
+        let backendError = JSON.stringify(data);
+        if (typeof data === 'object' && data !== null) {
+          const d = data as Record<string, unknown>;
+          backendError = (typeof d.error === 'string' && d.error) || (typeof d.message === 'string' && d.message) || backendError;
+        }
+        const errorMsg =
+          `[OTP] Failed to send OTP.\n` +
+          `Status: ${res.status} ${res.statusText}\n` +
+          `URL: ${url}\n` +
+          `Backend error: ${backendError}`;
+        console.error(errorMsg);
+        alert(errorMsg);
       }
-    } catch (err) {
-      console.error("Error sending OTP:", err);
-      alert("Error sending OTP. Please try again.");
+    } catch (err: unknown) {
+      let errMsg = '';
+      if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message?: unknown }).message === 'string') {
+        errMsg = (err as { message: string }).message;
+      } else {
+        errMsg = String(err);
+      }
+      const errorMsg =
+        `[OTP] Network or unexpected error.\n` +
+        `Message: ${errMsg}\n` +
+        `Check your internet connection, API URL, and CORS.`;
+      console.error(errorMsg);
+      alert(errorMsg);
     }
   };
 

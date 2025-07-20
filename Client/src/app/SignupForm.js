@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ValidationUtils from '../utils/validation';
 import SecureStorage from '../utils/secureStorage';
+import { config } from '../../config';
 
 const getEmoji = (strength) => {
   if (strength === 'weak') return '😡';
@@ -25,9 +26,10 @@ export default function SignupForm({ onRequestOtp }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordError, setShowPasswordError] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
-  const [remember, setRemember] = useState(false);
+  const [remember] = useState(false);
 
   const passwordStrength = ValidationUtils.getPasswordStrength(formData.password);
+  const backendUrl = config.getActiveAPIUrl ? config.getActiveAPIUrl() : config.API_URL;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,6 +43,11 @@ export default function SignupForm({ onRequestOtp }) {
     setPasswordTouched(true);
   };
 
+  const showErrorWithBackendUrl = (msg) => {
+    const backendUrl = config.getActiveAPIUrl ? config.getActiveAPIUrl() : config.API_URL;
+    setErrorMsg((msg ? msg + "\n" : "") + "Backend URL: " + backendUrl);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccessMsg("");
@@ -52,27 +59,27 @@ const firstNameValidation = ValidationUtils.validateName(formData.firstName, 'Fi
     const passwordValidation = ValidationUtils.validatePassword(formData.password);
 
     if (!firstNameValidation.isValid) {
-      setErrorMsg(firstNameValidation.errors.join(', '));
+      showErrorWithBackendUrl(firstNameValidation.errors.join(', '));
       return;
     }
 
     if (!lastNameValidation.isValid) {
-      setErrorMsg(lastNameValidation.errors.join(', '));
+      showErrorWithBackendUrl(lastNameValidation.errors.join(', '));
       return;
     }
 
     if (!emailValidation.isValid) {
-      setErrorMsg(emailValidation.errors.join(', '));
+      showErrorWithBackendUrl(emailValidation.errors.join(', '));
       return;
     }
 
     if (!dobValidation.isValid) {
-      setErrorMsg(dobValidation.errors.join(', '));
+      showErrorWithBackendUrl(dobValidation.errors.join(', '));
       return;
     }
 
     if (!passwordValidation.isValid) {
-      setErrorMsg(passwordValidation.errors.join(', '));
+      showErrorWithBackendUrl(passwordValidation.errors.join(', '));
       return;
     }
     setErrorMsg("");
@@ -92,13 +99,16 @@ if (remember) {
       });
       setPasswordTouched(false);
     } catch {
-      setErrorMsg("Signup failed. Please try again.");
+      showErrorWithBackendUrl("Signup failed. Please try again.");
     }
     setIsLoading(false);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-2 sm:p-4">
+      <div className="text-center text-xs text-blue-700 mb-2">
+        <span>👋 Hello, welcome!<br/>You are running on backend server:<br/><b>{backendUrl}</b></span>
+      </div>
       {errorMsg && (
         <div className="flex items-center text-red-600 font-semibold">
           <span className="mr-2">❌</span> {errorMsg}

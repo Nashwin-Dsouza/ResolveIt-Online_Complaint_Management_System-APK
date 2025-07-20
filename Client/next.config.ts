@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   assetPrefix: '',
   distDir: 'out',
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://resolveit-online-complaint-management-xncb.onrender.com'
   },
   typescript: {
     ignoreBuildErrors: true

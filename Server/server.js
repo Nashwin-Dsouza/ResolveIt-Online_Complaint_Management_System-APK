@@ -20,13 +20,10 @@ verifyEmailConfig();
 
 // Middleware
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://resolve-it-online-complaint-git-ac3b91-nashwin-dsouzas-projects.vercel.app',
-    'https://resolve-it-online-complaint-managem.vercel.app'
-  ],
+  origin: true, // Allow all origins for mobile app access
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
 app.use(express.json());
 

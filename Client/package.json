@@ -19,7 +19,7 @@
   "dependencies": {
     "@capacitor/android": "^5.5.0",
     "@capacitor/cli": "^5.5.0",
-    "@capacitor/core": "^5.5.0",
+    "@capacitor/core": "^5.7.8",
     "framer-motion": "^12.15.0",
     "next": "15.3.3",
     "react": "^19.0.0",

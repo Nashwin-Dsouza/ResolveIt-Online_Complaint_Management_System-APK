@@ -1,89 +1,78 @@
 @echo off
-setlocal enabledelayedexpansion
+echo ========================================
+echo Building ResolveIt APK
+echo ========================================
 
-echo ========================================
-echo    Building ResolveIt APK
-echo ========================================
+:: Read current version
+set /p CURRENT_VERSION=<version.txt
+echo Current version: %CURRENT_VERSION%
+
+:: Increment version (patch version)
+for /f "tokens=1,2,3 delims=." %%a in ("%CURRENT_VERSION%") do (
+    set MAJOR=%%a
+    set MINOR=%%b
+    set PATCH=%%c
+)
+
+:: Increment patch version
+set /a NEW_PATCH=%PATCH%+1
+set NEW_VERSION=%MAJOR%.%MINOR%.%NEW_PATCH%
+echo New version: %NEW_VERSION%
+
+:: Update version file
+echo %NEW_VERSION%> version.txt
+
+:: Update build.gradle with new version
 echo.
+echo Updating build.gradle with version %NEW_VERSION%...
+echo Note: Version will be updated in the next build. Current version: %NEW_VERSION%
 
-cd "D:\Major project\online_complain_management_apk\Client"
+:: Change to Client directory
+cd Client
 
-echo [1/5] Installing dependencies...
+:: Install dependencies if needed
+echo.
+echo Installing dependencies...
 call npm install
-if %errorlevel% neq 0 (
-    echo ❌ Failed to install dependencies
-    pause
-    exit /b 1
-)
 
+:: Build the Next.js project
 echo.
-echo [2/5] Building Next.js app...
+echo Building Next.js project...
 call npm run build
-if %errorlevel% neq 0 (
-    echo ❌ Failed to build Next.js app
-    pause
-    exit /b 1
-)
 
+:: Sync with Capacitor
 echo.
-echo [3/5] Syncing with Android...
+echo Syncing with Capacitor...
 call npx cap sync android
-if %errorlevel% neq 0 (
-    echo ❌ Failed to sync with Android
-    pause
-    exit /b 1
-)
 
+:: Build APK using Gradle
 echo.
-echo [4/5] Building APK...
+echo Building APK...
 cd android
-call .\gradlew assembleDebug
-if %errorlevel% neq 0 (
-    echo ❌ Failed to build APK
+call gradlew assembleDebug
+
+:: Check if build was successful
+if %ERRORLEVEL% EQU 0 (
+    echo.
+    echo ========================================
+    echo APK Build Successful!
+    echo ========================================
+    echo APK location: android\app\build\outputs\apk\debug\app-debug.apk
+    echo.
+    echo You can find your APK in the above location.
+    echo Note: Use PowerShell script for automatic APK renaming.
+    echo.
     pause
-    exit /b 1
-)
-
-echo.
-echo [5/5] Renaming APK file...
-
-:: Get current date and time
-for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
-set "YY=!dt:~2,2!" & set "YYYY=!dt:~0,4!" & set "MM=!dt:~4,2!" & set "DD=!dt:~6,2!"
-set "HH=!dt:~8,2!" & set "Min=!dt:~10,2!" & set "Sec=!dt:~12,2!"
-set "datestamp=!YYYY!-!MM!-!DD!"
-set "timestamp=!HH!-!Min!-!Sec!"
-
-:: Get version from package.json (you can modify this)
-set "version=1.0.0"
-
-:: Create new filename
-set "new_filename=ResolveIt_v!version!_!datestamp!_!timestamp!.apk"
-
-:: Rename the APK file
-if exist "app\build\outputs\apk\debug\app-debug.apk" (
-    copy "app\build\outputs\apk\debug\app-debug.apk" "app\build\outputs\apk\debug\!new_filename!"
-    echo ✅ APK renamed to: !new_filename!
 ) else (
-    echo ❌ APK file not found
+    echo.
+    echo ========================================
+    echo APK Build Failed!
+    echo ========================================
+    echo Please check the error messages above.
+    echo.
     pause
-    exit /b 1
 )
 
-echo.
-echo ========================================
-echo    ✅ APK Build Successful!
-echo ========================================
-echo.
-echo 📱 APK Files:
-echo    Original: android\app\build\outputs\apk\debug\app-debug.apk
-echo    Renamed:  android\app\build\outputs\apk\debug\!new_filename!
-echo.
-echo 📋 Next Steps:
-echo    1. Copy APK to your phone
-echo    2. Enable "Install from Unknown Sources"
-echo    3. Install and test the app
-echo.
-echo 💡 Tip: You can manually rename the APK to any name you want!
-echo.
-pause 
+:: Return to root directory
+cd ..
+cd .. 

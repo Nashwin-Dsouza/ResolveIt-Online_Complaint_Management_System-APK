@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import ValidationUtils from '../utils/validation';
 import SecureStorage from '../utils/secureStorage';
+import { config } from '../../config';
 
 export default function LoginForm({ onRequestOtp }) {
   const [formData, setFormData] = useState({
@@ -23,6 +24,11 @@ export default function LoginForm({ onRequestOtp }) {
     setSuccessMsg("");
   };
 
+  const showErrorWithBackendUrl = (msg) => {
+    const backendUrl = config.getActiveAPIUrl ? config.getActiveAPIUrl() : config.API_URL;
+    setErrorMsg((msg ? msg + "\n" : "") + "Backend URL: " + backendUrl);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -31,12 +37,12 @@ export default function LoginForm({ onRequestOtp }) {
     const passwordValidation = ValidationUtils.validatePassword(formData.password);
 
     if (!emailValidation.isValid) {
-      setErrorMsg(emailValidation.errors.join(', '));
+      showErrorWithBackendUrl(emailValidation.errors.join(', '));
       return;
     }
 
     if (!passwordValidation.isValid) {
-      setErrorMsg(passwordValidation.errors.join(', '));
+      showErrorWithBackendUrl(passwordValidation.errors.join(', '));
       return;
     }
     setIsLoading(true);
@@ -46,14 +52,40 @@ export default function LoginForm({ onRequestOtp }) {
       }
       await onRequestOtp({ email: formData.email, password: formData.password }, 'login');
       setFormData({ email: "", password: "" });
-    } catch {
-      setErrorMsg("Login failed. Please try again.");
+    } catch (error) {
+      console.error('Login error:', error);
+      showErrorWithBackendUrl("Login failed. Please try again.");
     }
     setIsLoading(false);
   };
 
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        // Try to fetch a lightweight resource
+        const res = await fetch("https://www.google.com/favicon.ico", { method: "HEAD" });
+        setIsOnline(res.ok);
+      } catch {
+        setIsOnline(false);
+      }
+    };
+    checkConnection();
+    // Optionally, check every 10 seconds
+    const interval = setInterval(checkConnection, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-2 sm:p-4">
+      <div className="text-center text-xs mb-2">
+        {isOnline ? (
+          <span className="text-green-700">You are connected to the internet.</span>
+        ) : (
+          <span className="text-red-700">You are <b>not</b> connected to the internet.</span>
+        )}
+      </div>
       {errorMsg && (
         <div className="flex items-center text-red-600 font-semibold">
           <span className="mr-2">❌</span> {errorMsg}

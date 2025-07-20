@@ -1,11 +1,30 @@
 @echo off
-echo 🚀 Starting ResolveIt Server...
+echo ========================================
+echo Starting ResolveIt Server
+echo ========================================
+
+:: Check if .env file exists
+if not exist "Server\.env" (
+    echo ERROR: .env file not found!
+    echo Please run setup-otp.bat first to create the .env file.
+    echo.
+    pause
+    exit /b 1
+)
+
+:: Check if node_modules exists
+if not exist "Server\node_modules" (
+    echo Installing dependencies...
+    cd Server
+    npm install
+    cd ..
+)
+
+:: Start the server
 echo.
-echo 📱 Your app will connect to: http://192.168.181.6:5000
+echo Starting server on port 5000...
 echo.
-echo 💡 Keep this window open while using your app
-echo 💡 Press Ctrl+C to stop the server
-echo.
-cd /d "D:\Major project\online_complain_management_apk\Server"
-node simple-server.js
+cd Server
+npm run dev
+
 pause 
