@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import EnhancedInternetTest from '../../components/EnhancedInternetTest';
 import NetworkPermissionHandler from '../../components/NetworkPermissionHandler';

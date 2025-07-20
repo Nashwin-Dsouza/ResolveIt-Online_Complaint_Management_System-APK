@@ -1,6 +1,6 @@
-# PowerShell script to build Release APK with version increment
+# PowerShell script to rebuild APK with new app icon
 Write-Host "========================================" -ForegroundColor Green
-Write-Host "Building ResolveIt Release APK" -ForegroundColor Green
+Write-Host "Rebuilding ResolveIt APK with New Icon" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 
 # Read current version
@@ -28,6 +28,12 @@ $content = Get-Content $buildGradlePath -Raw
 $updatedContent = $content -replace 'versionName "[^"]*"', "versionName `"$newVersion`""
 $updatedContent | Out-File $buildGradlePath -Encoding ASCII
 
+# Set production environment variables
+Write-Host ""
+Write-Host "Setting production environment..."
+$env:NEXT_PUBLIC_API_URL = "https://resolveit-online-complaint-management-xncb.onrender.com"
+Write-Host "API URL set to: $env:NEXT_PUBLIC_API_URL"
+
 # Change to Client directory
 Set-Location "Client"
 
@@ -36,9 +42,9 @@ Write-Host ""
 Write-Host "Installing dependencies..."
 npm install
 
-# Build the Next.js project
+# Build the Next.js project with production environment
 Write-Host ""
-Write-Host "Building Next.js project..."
+Write-Host "Building Next.js project (Production)..."
 npm run build
 
 # Sync with Capacitor
@@ -46,44 +52,45 @@ Write-Host ""
 Write-Host "Syncing with Capacitor..."
 npx cap sync android
 
-# Build Release APK using Gradle
+# Build APK using Gradle
 Write-Host ""
-Write-Host "Building Release APK..."
+Write-Host "Building APK with new icon..."
 Set-Location "android"
-& .\gradlew assembleRelease
+& .\gradlew assembleDebug
 
 # Check if build was successful
 if ($LASTEXITCODE -eq 0) {
     # Rename the APK file to include version
-    $originalApkPath = "app\build\outputs\apk\release\app-release.apk"
-    $newApkPath = "app\build\outputs\apk\release\ResolveIt-v$newVersion.apk"
+    $originalApkPath = "app\build\outputs\apk\debug\app-debug.apk"
+    $newApkPath = "app\build\outputs\apk\debug\ResolveIt-v$newVersion-debug.apk"
     
     if (Test-Path $originalApkPath) {
-        Rename-Item -Path $originalApkPath -NewName "ResolveIt-v$newVersion.apk"
+        Rename-Item -Path $originalApkPath -NewName "ResolveIt-v$newVersion-debug.apk"
         Write-Host ""
         Write-Host "========================================" -ForegroundColor Green
-        Write-Host "Release APK Build Successful!" -ForegroundColor Green
+        Write-Host "APK Build Successful with New Icon!" -ForegroundColor Green
         Write-Host "========================================" -ForegroundColor Green
-        Write-Host "APK location: android\app\build\outputs\apk\release\ResolveIt-v$newVersion.apk"
+        Write-Host "APK location: android\app\build\outputs\apk\debug\ResolveIt-v$newVersion-debug.apk"
+        Write-Host "New Icon: White gear with blue circle and teal checkmark"
+        Write-Host "API URL: https://resolveit-online-complaint-management-xncb.onrender.com"
         Write-Host ""
-        Write-Host "You can find your release APK in the above location."
-        Write-Host "Note: This APK is signed and ready for distribution."
+        Write-Host "You can find your APK in the above location."
+        Write-Host "Install the new APK to see the updated icon!"
         Write-Host ""
     } else {
         Write-Host ""
         Write-Host "========================================" -ForegroundColor Yellow
-        Write-Host "Release APK Built but file not found for renaming!" -ForegroundColor Yellow
+        Write-Host "APK Built but file not found for renaming!" -ForegroundColor Yellow
         Write-Host "========================================" -ForegroundColor Yellow
-        Write-Host "Check: android\app\build\outputs\apk\release\"
+        Write-Host "Check: android\app\build\outputs\apk\debug\"
         Write-Host ""
     }
 } else {
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Red
-    Write-Host "Release APK Build Failed!" -ForegroundColor Red
+    Write-Host "APK Build Failed!" -ForegroundColor Red
     Write-Host "========================================" -ForegroundColor Red
     Write-Host "Please check the error messages above."
-    Write-Host "Make sure you have configured signing keys for release builds."
     Write-Host ""
 }
 

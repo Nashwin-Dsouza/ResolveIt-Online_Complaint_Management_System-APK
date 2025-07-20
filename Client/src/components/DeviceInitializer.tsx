@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import DeviceUtils from '../utils/deviceUtils';
 import { Toast } from '../utils/networkUtils';
