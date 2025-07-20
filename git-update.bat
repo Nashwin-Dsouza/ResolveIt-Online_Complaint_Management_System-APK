@@ -96,19 +96,46 @@ echo.
 
 :: Step 5: Commit changes
 echo 💾 Step 5: Committing changes...
-git commit -m "%COMMIT_MSG%"
+
+:: Check if there are any changes to commit
+git status --porcelain >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo ❌ Failed to commit changes!
-    echo This might be because there are no changes to commit.
+    echo ⚠️  No changes detected to commit.
     echo.
     echo Do you want to continue with push anyway? (y/n)
     set /p CONTINUE=
     if /i not "!CONTINUE!"=="y" (
+        echo Exiting...
         pause
         exit /b 1
     )
+    echo Continuing with push...
+    set COMMIT_RESULT=0
 ) else (
-    echo ✅ Changes committed successfully
+    :: Configure git to not open editor
+    git config --global core.editor "echo"
+    
+    :: Try to commit with the message
+    git commit -m "%COMMIT_MSG%" 2>&1
+    set COMMIT_RESULT=%ERRORLEVEL%
+    
+    if %COMMIT_RESULT% neq 0 (
+        echo ❌ Failed to commit changes!
+        echo.
+        echo Checking if there are any changes to commit...
+        git status --porcelain
+        echo.
+        echo Do you want to continue with push anyway? (y/n)
+        set /p CONTINUE=
+        if /i not "!CONTINUE!"=="y" (
+            echo Exiting...
+            pause
+            exit /b 1
+        )
+        echo Continuing with push...
+    ) else (
+        echo ✅ Changes committed successfully
+    )
 )
 echo.
 
