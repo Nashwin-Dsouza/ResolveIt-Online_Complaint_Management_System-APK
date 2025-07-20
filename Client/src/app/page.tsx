@@ -2,33 +2,14 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import SignupForm from "./SignupForm.js"; // Make sure path is correct
+import SignupForm from "./SignupForm.js";
 import LoginForm from "./LoginForm.js";
-import OtpInput from "./OtpInput.js";
+import ForgotPassword from "./ForgotPassword.js";
 import { config } from "../../config";
-
-// Add types for form data
-interface LoginFormData {
-  email: string;
-  password: string;
-}
-interface SignupFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  dob: string;
-  password: string;
-}
-
-type AuthFormData = LoginFormData | SignupFormData;
-
-type OtpType = 'login' | 'signup';
 
 export default function SlidingAuth() {
   const [isSignup, setIsSignup] = useState(false);
-  const [showOtp, setShowOtp] = useState(false);
-  const [otpFormData, setOtpFormData] = useState<AuthFormData | null>(null); // store all form data
-  const [otpType, setOtpType] = useState<OtpType>("login");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,63 +21,12 @@ export default function SlidingAuth() {
 
   if (!mounted) return null;
 
-  // Handler to trigger OTP input
-  const handleRequestOtp = async (formData: AuthFormData, type: OtpType) => {
-    setOtpFormData(formData);
-    setOtpType(type);
-    try {
-      const url = `${config.getActiveAPIUrl()}/api/otp/send`;
-      console.log("[OTP] Sending OTP to:", url, "with data:", { ...formData, type });
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...formData, type }),
-      });
-      let data: unknown = {};
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        console.error("[OTP] Failed to parse JSON response:", jsonErr);
-      }
-      if (res.ok) {
-        setShowOtp(true);
-      } else {
-        let backendError = JSON.stringify(data);
-        if (typeof data === 'object' && data !== null) {
-          const d = data as Record<string, unknown>;
-          backendError = (typeof d.error === 'string' && d.error) || (typeof d.message === 'string' && d.message) || backendError;
-        }
-        const errorMsg =
-          `[OTP] Failed to send OTP.\n` +
-          `Status: ${res.status} ${res.statusText}\n` +
-          `URL: ${url}\n` +
-          `Backend error: ${backendError}`;
-        console.error(errorMsg);
-        alert(errorMsg);
-      }
-    } catch (err: unknown) {
-      let errMsg = '';
-      if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message?: unknown }).message === 'string') {
-        errMsg = (err as { message: string }).message;
-      } else {
-        errMsg = String(err);
-      }
-      const errorMsg =
-        `[OTP] Network or unexpected error.\n` +
-        `Message: ${errMsg}\n` +
-        `Check your internet connection, API URL, and CORS.`;
-      console.error(errorMsg);
-      alert(errorMsg);
-    }
+  const handleForgotPassword = () => {
+    setShowForgotPassword(true);
   };
 
-  // Handler to go back from OTP
-  const handleBackFromOtp = () => {
-    setShowOtp(false);
-    setOtpFormData(null);
-    setOtpType('login'); // Use a valid OtpType value
+  const handleBackFromForgotPassword = () => {
+    setShowForgotPassword(false);
   };
 
   return (
@@ -152,7 +82,7 @@ export default function SlidingAuth() {
         {/* Forms container */}
         <div className="flex w-full h-full relative flex-1">
           <AnimatePresence mode="wait" initial={false}>
-            {!showOtp ? (
+            {!showForgotPassword ? (
               !isSignup ? (
                 <motion.div
                   key="login-form"
@@ -163,7 +93,7 @@ export default function SlidingAuth() {
                   className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-10 relative"
                   style={{ marginLeft: "auto" }}
                 >
-                  <LoginForm onRequestOtp={handleRequestOtp} />
+                  <LoginForm onForgotPassword={handleForgotPassword} />
                 </motion.div>
               ) : (
                 <motion.div
@@ -175,12 +105,12 @@ export default function SlidingAuth() {
                   className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-10 relative"
                   style={{ marginLeft: 0 }}
                 >
-                  <SignupForm onRequestOtp={handleRequestOtp} />
+                  <SignupForm />
                 </motion.div>
               )
             ) : (
               <motion.div
-                key="otp-form"
+                key="forgot-password-form"
                 initial={{ y: 100, x: 0, opacity: 0 }}
                 animate={{
                   y: -100,
@@ -190,12 +120,11 @@ export default function SlidingAuth() {
                 exit={{ y: -100, opacity: 0 }}
                 transition={{ duration: 1.2, ease: "easeInOut", type: "spring", stiffness: 60, damping: 18 }}
                 className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-10 relative"
-                style={{ marginLeft: isSignup ? 0 : "auto" }}
+                style={{ marginLeft: "auto" }}
               >
-                <OtpInput 
-                  onBack={handleBackFromOtp} 
-                  formData={otpFormData}
-                  type={otpType}
+                <ForgotPassword 
+                  onBack={handleBackFromForgotPassword} 
+                  email=""
                 />
               </motion.div>
             )}

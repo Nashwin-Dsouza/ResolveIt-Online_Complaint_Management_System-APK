@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
+import { useState } from "react";
 import ValidationUtils from '../utils/validation';
 import SecureStorage from '../utils/secureStorage';
-import { config } from '../../config';
+import ApiService from '../services/apiService';
 
-export default function LoginForm({ onRequestOtp }) {
+export default function LoginForm({ onForgotPassword }) {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,68 +23,64 @@ export default function LoginForm({ onRequestOtp }) {
     setSuccessMsg("");
   };
 
-  const showErrorWithBackendUrl = (msg) => {
-    const backendUrl = config.getActiveAPIUrl ? config.getActiveAPIUrl() : config.API_URL;
-    setErrorMsg((msg ? msg + "\n" : "") + "Backend URL: " + backendUrl);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
+    
     const emailValidation = ValidationUtils.validateEmail(formData.email);
     const passwordValidation = ValidationUtils.validatePassword(formData.password);
 
     if (!emailValidation.isValid) {
-      showErrorWithBackendUrl(emailValidation.errors.join(', '));
+      setErrorMsg(emailValidation.errors.join(', '));
       return;
     }
 
     if (!passwordValidation.isValid) {
-      showErrorWithBackendUrl(passwordValidation.errors.join(', '));
+      setErrorMsg(passwordValidation.errors.join(', '));
       return;
     }
+
     setIsLoading(true);
     try {
+      const apiService = new ApiService();
+      await apiService.login(formData.email, formData.password);
+      
       if (remember) {
         await SecureStorage.setRememberLogin(true);
       }
-      await onRequestOtp({ email: formData.email, password: formData.password }, 'login');
+      
+      setSuccessMsg("Login successful! Redirecting...");
       setFormData({ email: "", password: "" });
+      
+      // Redirect to home page or dashboard
+      setTimeout(() => {
+        window.location.href = '/home';
+      }, 1000);
+      
     } catch (error) {
       console.error('Login error:', error);
-      showErrorWithBackendUrl("Login failed. Please try again.");
+      if (error.message.includes('Invalid credentials')) {
+        setErrorMsg("Invalid email or password");
+      } else if (error.message.includes('User not found')) {
+        setErrorMsg("User not found. Please check your email");
+      } else if (error.message.includes('Account not verified')) {
+        setErrorMsg("Please verify your account first");
+      } else {
+        setErrorMsg("Login failed. Please try again.");
+      }
     }
     setIsLoading(false);
   };
 
-  const [isOnline, setIsOnline] = useState(true);
-
-  useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        // Try to fetch a lightweight resource
-        const res = await fetch("https://www.google.com/favicon.ico", { method: "HEAD" });
-        setIsOnline(res.ok);
-      } catch {
-        setIsOnline(false);
-      }
-    };
-    checkConnection();
-    // Optionally, check every 10 seconds
-    const interval = setInterval(checkConnection, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  const handleForgotPassword = () => {
+    if (onForgotPassword) {
+      onForgotPassword(formData.email);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-2 sm:p-4">
-      <div className="text-center text-xs mb-2">
-        {isOnline ? (
-          <span className="text-green-700">You are connected to the internet.</span>
-        ) : (
-          <span className="text-red-700">You are <b>not</b> connected to the internet.</span>
-        )}
-      </div>
       {errorMsg && (
         <div className="flex items-center text-red-600 font-semibold">
           <span className="mr-2">❌</span> {errorMsg}
@@ -135,17 +130,26 @@ export default function LoginForm({ onRequestOtp }) {
       </div>
       
       {/* Remember me checkbox */}
-      <div className="flex items-center">
-        <input
-          id="remember"
-          type="checkbox"
-          checked={remember}
-          onChange={(e) => setRemember(e.target.checked)}
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-        />
-        <label htmlFor="remember" className="ml-2 text-sm text-gray-700">
-          Remember me
-        </label>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <input
+            id="remember"
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label htmlFor="remember" className="ml-2 text-sm text-gray-700">
+            Remember me
+          </label>
+        </div>
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          className="text-sm text-blue-600 hover:text-blue-800 underline"
+        >
+          Forgot Password?
+        </button>
       </div>
       
       <button

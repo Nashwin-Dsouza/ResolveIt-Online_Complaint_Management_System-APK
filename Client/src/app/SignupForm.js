@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import ValidationUtils from '../utils/validation';
-import SecureStorage from '../utils/secureStorage';
-import { config } from '../../config';
+import ApiService from '../services/apiService';
 
 const getEmoji = (strength) => {
   if (strength === 'weak') return '😡';
@@ -12,7 +11,7 @@ const getEmoji = (strength) => {
   return '';
 };
 
-export default function SignupForm({ onRequestOtp }) {
+export default function SignupForm() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -24,72 +23,82 @@ export default function SignupForm({ onRequestOtp }) {
   const [successMsg, setSuccessMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordError, setShowPasswordError] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
-  const [remember] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const passwordStrength = ValidationUtils.getPasswordStrength(formData.password);
-  const backendUrl = config.getActiveAPIUrl ? config.getActiveAPIUrl() : config.API_URL;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setSuccessMsg("");
-    if (name !== 'password') setErrorMsg("");
-    // Don't clear errorMsg for password typing, only after submit
+    setErrorMsg("");
+    
+    // Clear field-specific error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handlePasswordFocus = () => {
     setPasswordTouched(true);
   };
 
-  const showErrorWithBackendUrl = (msg) => {
-    const backendUrl = config.getActiveAPIUrl ? config.getActiveAPIUrl() : config.API_URL;
-    setErrorMsg((msg ? msg + "\n" : "") + "Backend URL: " + backendUrl);
+  const validateField = (name, value) => {
+    let validation;
+    switch (name) {
+      case 'firstName':
+        validation = ValidationUtils.validateName(value, 'First Name');
+        break;
+      case 'lastName':
+        validation = ValidationUtils.validateName(value, 'Last Name');
+        break;
+      case 'email':
+        validation = ValidationUtils.validateEmail(value);
+        break;
+      case 'dob':
+        validation = ValidationUtils.validateDateOfBirth(value);
+        break;
+      case 'password':
+        validation = ValidationUtils.validatePassword(value);
+        break;
+      default:
+        return true;
+    }
+    
+    if (!validation.isValid) {
+      setFieldErrors(prev => ({ ...prev, [name]: validation.errors[0] }));
+      return false;
+    } else {
+      setFieldErrors(prev => ({ ...prev, [name]: "" }));
+      return true;
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccessMsg("");
-    setShowPasswordError(false);
-const firstNameValidation = ValidationUtils.validateName(formData.firstName, 'First Name');
-    const lastNameValidation = ValidationUtils.validateName(formData.lastName, 'Last Name');
-    const emailValidation = ValidationUtils.validateEmail(formData.email);
-    const dobValidation = ValidationUtils.validateDateOfBirth(formData.dob);
-    const passwordValidation = ValidationUtils.validatePassword(formData.password);
-
-    if (!firstNameValidation.isValid) {
-      showErrorWithBackendUrl(firstNameValidation.errors.join(', '));
-      return;
-    }
-
-    if (!lastNameValidation.isValid) {
-      showErrorWithBackendUrl(lastNameValidation.errors.join(', '));
-      return;
-    }
-
-    if (!emailValidation.isValid) {
-      showErrorWithBackendUrl(emailValidation.errors.join(', '));
-      return;
-    }
-
-    if (!dobValidation.isValid) {
-      showErrorWithBackendUrl(dobValidation.errors.join(', '));
-      return;
-    }
-
-    if (!passwordValidation.isValid) {
-      showErrorWithBackendUrl(passwordValidation.errors.join(', '));
-      return;
-    }
     setErrorMsg("");
+    
+    // Validate all fields
+    const validations = [
+      validateField('firstName', formData.firstName),
+      validateField('lastName', formData.lastName),
+      validateField('email', formData.email),
+      validateField('dob', formData.dob),
+      validateField('password', formData.password)
+    ];
+    
+    if (validations.some(v => !v)) {
+      return;
+    }
+
     setIsLoading(true);
     try {
-if (remember) {
-        await SecureStorage.setRememberLogin(true);
-      }
-      await onRequestOtp(formData, 'signup');
-      setSuccessMsg("Signup request sent! Please check your email for OTP.");
+      const apiService = new ApiService();
+      await apiService.signup(formData);
+      
+      setSuccessMsg("Account created successfully! Please check your email for verification.");
       setFormData({
         firstName: "",
         lastName: "",
@@ -98,17 +107,24 @@ if (remember) {
         password: "",
       });
       setPasswordTouched(false);
-    } catch {
-      showErrorWithBackendUrl("Signup failed. Please try again.");
+      setFieldErrors({});
+    } catch (error) {
+      console.error('Signup error:', error);
+      if (error.message.includes('Email already exists')) {
+        setErrorMsg("Email already exists. Please use a different email or try logging in.");
+      } else if (error.message.includes('Weak password')) {
+        setErrorMsg("Password is too weak. Please use a stronger password.");
+      } else if (error.message.includes('Invalid email')) {
+        setErrorMsg("Please enter a valid email address.");
+      } else {
+        setErrorMsg("Signup failed. Please try again.");
+      }
     }
     setIsLoading(false);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-2 sm:p-4">
-      <div className="text-center text-xs text-blue-700 mb-2">
-        <span>👋 Hello, welcome!<br/>You are running on backend server:<br/><b>{backendUrl}</b></span>
-      </div>
       {errorMsg && (
         <div className="flex items-center text-red-600 font-semibold">
           <span className="mr-2">❌</span> {errorMsg}
@@ -126,9 +142,14 @@ if (remember) {
         value={formData.firstName}
         onChange={handleChange}
         placeholder="First Name"
-        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base"
+        className={`w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base ${
+          fieldErrors.firstName ? 'border-red-500' : ''
+        }`}
         required
       />
+      {fieldErrors.firstName && (
+        <div className="text-red-500 text-xs mt-1">{fieldErrors.firstName}</div>
+      )}
       <label htmlFor="lastName" className="block mb-1 text-sm sm:text-base">Last Name</label>
       <input
         id="lastName"
@@ -136,9 +157,14 @@ if (remember) {
         value={formData.lastName}
         onChange={handleChange}
         placeholder="Last Name"
-        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base"
+        className={`w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base ${
+          fieldErrors.lastName ? 'border-red-500' : ''
+        }`}
         required
       />
+      {fieldErrors.lastName && (
+        <div className="text-red-500 text-xs mt-1">{fieldErrors.lastName}</div>
+      )}
       <label htmlFor="email" className="block mb-1 text-sm sm:text-base">Email</label>
       <input
         id="email"
@@ -146,9 +172,14 @@ if (remember) {
         value={formData.email}
         onChange={handleChange}
         placeholder="Email"
-        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base"
+        className={`w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base ${
+          fieldErrors.email ? 'border-red-500' : ''
+        }`}
         required
       />
+      {fieldErrors.email && (
+        <div className="text-red-500 text-xs mt-1">{fieldErrors.email}</div>
+      )}
       <label htmlFor="dob" className="block mb-1 text-sm sm:text-base">Date of Birth</label>
       <input
         id="dob"
@@ -156,9 +187,14 @@ if (remember) {
         name="dob"
         value={formData.dob}
         onChange={handleChange}
-        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base"
+        className={`w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition text-sm sm:text-base ${
+          fieldErrors.dob ? 'border-red-500' : ''
+        }`}
         required
       />
+      {fieldErrors.dob && (
+        <div className="text-red-500 text-xs mt-1">{fieldErrors.dob}</div>
+      )}
       <label htmlFor="password" className="block mb-1 text-sm sm:text-base">Password</label>
       {passwordTouched && (
         <div className="mb-1 text-xs text-gray-600">
@@ -174,7 +210,9 @@ if (remember) {
           onChange={handleChange}
           onFocus={handlePasswordFocus}
           placeholder="Password"
-          className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition pr-10 text-sm sm:text-base"
+          className={`w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-600 transition pr-10 text-sm sm:text-base ${
+            fieldErrors.password ? 'border-red-500' : ''
+          }`}
           required
         />
         {passwordTouched && (
@@ -202,15 +240,13 @@ if (remember) {
           )}
         </button>
       </div>
-      {showPasswordError && (
-        <div className="flex items-center text-red-600 font-semibold text-sm mt-1">
-          <span className="mr-2">❌</span> Password is too weak. Please use a stronger password.
-        </div>
+      {fieldErrors.password && (
+        <div className="text-red-500 text-xs mt-1">{fieldErrors.password}</div>
       )}
       <button
         type="submit"
         className="w-full bg-blue-600 text-white py-2 rounded-lg shadow hover:drop-shadow-[0_0_8px_#2563EB] transition flex items-center justify-center text-sm sm:text-base"
-        disabled={isLoading || passwordStrength === 'weak'}
+        disabled={isLoading}
       >
         {isLoading ? (
           <span className="flex items-center">
